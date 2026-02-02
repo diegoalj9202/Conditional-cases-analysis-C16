@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EFL Conditionals Laboratory: B2 Activity</title>
+    <!-- html2canvas library for screenshot functionality -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;       /* Indigo 600 */
+            --primary-light: #818cf8; /* Indigo 400 */
+            --primary-dark: #3730a3;  /* Indigo 800 */
+            
+            --bg-body: #f0f2f5;       /* Very light gray/blue */
+            --bg-card: #ffffff;
+            
+            --text-main: #1e293b;     /* Slate 800 */
+            --text-muted: #64748b;    /* Slate 500 */
+            
+            --border: #cbd5e1;        /* Slate 300 */
+            --shadow-color: rgba(30, 41, 59, 0.1);
+            
+            /* Highlight Colors - Softer Pastels */
+            --hl-real-bg: #d1fae5;    /* Emerald 100 */
+            --hl-real-text: #065f46;  /* Emerald 800 */
+            --hl-hyp-now-bg: #dbeafe; /* Blue 100 */
+            --hl-hyp-now-text: #1e40af; /* Blue 800 */
+            --hl-hyp-past-bg: #f3e8ff; /* Purple 100 */
+            --hl-hyp-past-text: #6b21a8; /* Purple 800 */
+        }
+
+        /* Reset & Base */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Sidebar (Desktop Default) */
+        aside {
+            width: 280px;
+            background: var(--bg-body); /* Match body for floating feel */
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex-shrink: 0;
+            z-index: 20;
+        }
+
+        .brand {
+            padding: 0 0.5rem 1.5rem 0.5rem;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--primary);
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .nav-item {
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            background: var(--bg-card);
+            border-radius: 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid transparent;
+            
+            /* Soft 3D Effect */
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.03),
+                0 4px 0 var(--border); /* Bottom edge */
+            transform: translateY(0);
+        }
+
+        .nav-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 8px -1px rgba(0, 0, 0, 0.08), 
+                0 4px 0 var(--border);
+        }
+
+        .nav-item:active {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 var(--border);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 
+                0 4px 10px rgba(79, 70, 229, 0.4),
+                0 4px 0 var(--primary-dark);
+            border-color: transparent;
+        }
+        .nav-item.active:hover {
+             transform: translateY(-1px);
+        }
+        .nav-item.active:active {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 var(--primary-dark);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            position: relative;
+            /* Smooth scroll behavior */
+            scroll-behavior: smooth;
+        }
+
+        /* Headers & Instructions */
+        header { margin-bottom: 2rem; }
+        h1 { margin: 0 0 0.5rem 0; font-size: 1.8rem; font-weight: 800; color: var(--text-main); }
+        
+        /* Name Input Styling - Floating Card */
+        .student-info {
+            background: white;
+            padding: 1.2rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-shadow: 0 10px 25px -5px var(--shadow-color);
+            border: 1px solid rgba(255,255,255,0.8);
+            position: relative;
+        }
+        .student-info label {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .autosave-status {
+            font-size: 0.75rem;
+            color: #16a34a;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .autosave-status.visible { opacity: 1; }
+        
+        .student-info input {
+            padding: 0.8rem 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+        .student-info input:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+        .student-info input.error {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+            animation: shake 0.5s;
+        }
+
+        /* Instructions - Floating Card */
+        .instructions-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px var(--shadow-color);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+        .instructions-card h3 { 
+            margin-top: 0; 
+            color: var(--primary-dark); 
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .step-list { margin: 0; padding-left: 1.2rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; }
+        .step-list li { margin-bottom: 0.5rem; line-height: 1.5; }
+        .step-list strong { color: var(--primary); }
+
+        /* Reading Area */
+        .reading-section {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            position: relative;
+            border: 1px solid rgba(255,255,255,1);
+        }
+        
+        /* Floating Toolbar */
+        .toolbar {
+            position: sticky;
+            top: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 0.8rem;
+            border-radius: 16px;
+            margin: -1rem -1rem 1.5rem -1rem;
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        /* 3D Buttons */
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.15s ease;
+            position: relative;
+            top: 0;
+            
+            /* The 3D effect */
+            box-shadow: 0 5px 0 rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .btn:active {
+            top: 3px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+        }
+
+        /* Specific Button Colors */
+        .btn-real { background: var(--hl-real-bg); color: var(--hl-real-text); box-shadow: 0 5px 0 #86efac; }
+        .btn-real:active { box-shadow: 0 2px 0 #86efac; }
+        
+        .btn-hyp-now { background: var(--hl-hyp-now-bg); color: var(--hl-hyp-now-text); box-shadow: 0 5px 0 #93c5fd; }
+        .btn-hyp-now:active { box-shadow: 0 2px 0 #93c5fd; }
+        
+        .btn-hyp-past { background: var(--hl-hyp-past-bg); color: var(--hl-hyp-past-text); box-shadow: 0 5px 0 #d8b4fe; }
+        .btn-hyp-past:active { box-shadow: 0 2px 0 #d8b4fe; }
+        
+        .btn-clear { background: #fee2e2; color: #b91c1c; box-shadow: 0 5px 0 #fca5a5; margin-left: auto; }
+        .btn-clear:active { box-shadow: 0 2px 0 #fca5a5; }
+        
+        .btn-primary { 
+            background: var(--primary); 
+            color: white; 
+            box-shadow: 0 5px 0 var(--primary-dark); 
+        }
+        .btn-primary:active { box-shadow: 0 2px 0 var(--primary-dark); }
+        .btn-primary:hover { filter: brightness(1.1); }
+
+        .btn-reset { 
+            background: #fff1f2; 
+            color: #be123c; 
+            border: 1px solid #ffe4e6;
+            font-size: 0.85rem;
+        }
+
+        /* Capture Wrapper */
+        #capture-wrapper {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px; /* Smooth corners in screenshot */
+        }
+        
+        #case-content-container {
+            font-size: 1.25rem;
+            line-height: 1.9;
+            color: #334155;
+            min-height: 150px;
+            cursor: text;
+        }
+
+        /* Evidence Panel Styles */
+        details.evidence-panel {
+            margin-top: 1.5rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        
+        details.evidence-panel summary {
+            padding: 1rem;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--primary-dark);
+            background: #eef2ff;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        details.evidence-panel summary::-webkit-details-marker { display: none; }
+        
+        details.evidence-panel summary:hover {
+            background: #e0e7ff;
+        }
+
+        details.evidence-panel[open] summary {
+            border-bottom: 1px solid var(--border);
+        }
+
+        details.evidence-panel summary::after {
+            content: '+';
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        details.evidence-panel[open] summary::after {
+            content: '-';
+        }
+
+        .evidence-list {
+            padding: 1rem 1.5rem 1.5rem 2.5rem;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .evidence-list li {
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+            color: var(--text-main);
+        }
+        .evidence-list li:last-child { margin-bottom: 0; }
+
+        /* Highlights - Soft rounded edges */
+        .highlight-real { background-color: var(--hl-real-bg); color: var(--hl-real-text); border-radius: 6px; padding: 2px 4px; cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+        .highlight-now { background-color: var(--hl-hyp-now-bg); color: var(--hl-hyp-now-text); border-radius: 6px; padding: 2px 4px; cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+        .highlight-past { background-color: var(--hl-hyp-past-bg); color: var(--hl-hyp-past-text); border-radius: 6px; padding: 2px 4px; cursor: pointer; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+
+        /* Evidence Section */
+        .evidence-section {
+            display: flex;
+            justify-content: center;
+            margin-top: 1rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px var(--shadow-color);
+        }
+
+        /* Footer / Actions */
+        .actions-bar {
+            margin-top: 3rem;
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            padding-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .actions-bar .btn {
+            padding: 1rem 2rem;
+            font-size: 1rem;
+        }
+
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            background: #1e293b;
+            color: white;
+            padding: 1.2rem;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            max-width: 300px;
+            width: max-content;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            pointer-events: auto;
+            transform: translateY(10px);
+            animation: fadeIn 0.2s ease forwards;
+            line-height: 1.5;
+        }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+        #tooltip::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 20px;
+            border-width: 8px;
+            border-style: solid;
+            border-color: transparent transparent #1e293b transparent;
+        }
+        #tooltip strong { font-size: 1.1em; color: #60a5fa; }
+        #tooltip em { display: block; margin: 0.4rem 0; font-style: normal; color: #cbd5e1; }
+        #tooltip .phonetic { color: #94a3b8; font-size: 0.85em; margin-left: 0.5rem; }
+
+        /* Animation Keyframes */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* --- MOBILE RESPONSIVE IMPROVEMENTS --- */
+        @media (max-width: 768px) {
+            .app-container { 
+                flex-direction: column; 
+                overflow-y: scroll;
+                height: auto;
+            }
+            
+            /* Horizontal Scroll Nav for Mobile */
+            aside { 
+                width: 100%; 
+                max-height: none;
+                padding: 1rem;
+                background: var(--bg-body);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            }
+            
+            .brand {
+                font-size: 1.2rem;
+                padding-bottom: 0.5rem;
+            }
+
+            .nav-list {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 1rem; /* Space for shadow/scroll */
+                gap: 0.8rem;
+                /* Hide scrollbar visually but allow scroll */
+                scrollbar-width: none; /* Firefox */
+                -ms-overflow-style: none;  /* IE 10+ */
+            }
+            .nav-list::-webkit-scrollbar { 
+                display: none; /* Chrome/Safari */
+            }
+
+            .nav-item {
+                flex: 0 0 auto; /* Don't shrink, keep width based on content */
+                white-space: nowrap;
+                border-radius: 50px; /* Pill shape */
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+
+            /* Main Adjustments */
+            main { 
+                overflow: visible; 
+                padding: 1rem; 
+            }
+            
+            .step-list { grid-template-columns: 1fr; gap: 1rem; }
+            
+            .reading-section {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+            
+            .toolbar {
+                margin: -1rem -1rem 1rem -1rem;
+                border-radius: 0 0 16px 16px;
+                justify-content: flex-start;
+                overflow-x: auto;
+                padding-bottom: 0.8rem;
+            }
+            .toolbar span { display: none; } /* Hide label on mobile to save space */
+            
+            .btn {
+                white-space: nowrap;
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+            
+            h1 { font-size: 1.5rem; }
+        }
+
+        /* Print Styles */
+        @media print {
+            aside, .toolbar, .actions-bar, .instructions-card, .evidence-section { display: none !important; }
+            body, .app-container, main { height: auto; overflow: visible; background: white; }
+            main { padding: 0; }
+            .reading-section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+            .student-info { box-shadow: none; border: 1px solid #ccc; }
+            details.evidence-panel { break-inside: avoid; }
+            details.evidence-panel[open] { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Navigation Sidebar -->
+    <aside id="sidebar">
+        <div class="brand">🧬 EFL Lab</div>
+        <ul class="nav-list" id="nav-list">
+            <!-- Items injected by JS -->
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <header>
+            <h1 id="case-title">Case Title</h1>
+            
+            <div class="student-info">
+                <label for="student-name">
+                    Your Name (Required):
+                    <span id="autosave-status" class="autosave-status">✅ Autosaved</span>
+                </label>
+                <input type="text" id="student-name" placeholder="Enter your full name here..." oninput="this.classList.remove('error')">
+            </div>
+
+            <div class="instructions-card">
+                <h3>Activity Steps</h3>
+                <ul class="step-list">
+                    <li><strong>Step A: Extract</strong><br>Read and highlight conditional sentences using the color tools. Copy them into your notebook.</li>
+                    <li><strong>Step B: Analyze</strong><br>In your notebook, classify each one by type (Real, Hyp-Now, Hyp-Past) and identify the principle.</li>
+                    <li><strong>Step C: Evidence</strong><br>Click 'Download Evidence' below to save an image of your highlighted text.</li>
+                    <li><strong>Dictionary:</strong><br>Double-click ANY word to see its definition instantly.</li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- Tooltip Bubble -->
+        <div id="tooltip"></div>
+
+        <!-- Section 1: Reading & Highlighting -->
+        <section class="reading-section">
+            <div class="toolbar">
+                <span>Highlight Tool:</span>
+                <button class="btn btn-real" onclick="applyHighlight('real')">Real (0/1)</button>
+                <button class="btn btn-hyp-now" onclick="applyHighlight('now')">Hyp-Now (2)</button>
+                <button class="btn btn-hyp-past" onclick="applyHighlight('past')">Hyp-Past (3)</button>
+                <button class="btn btn-clear" onclick="clearHighlights()">Reset</button>
+            </div>
+            <!-- Wrapped for Screenshot -->
+            <div id="capture-wrapper">
+                <div id="capture-header" style="display:none; border-bottom: 2px solid #e5e7eb; margin-bottom: 1rem; padding-bottom: 0.5rem;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #3730a3;">Conditionals Analysis Evidence</div>
+                    <div style="color: #4b5563; margin-top:0.25rem;">
+                        Student: <span id="capture-student-name" style="font-weight:600; color: #111;"></span> 
+                        | Case: <span id="capture-case-title" style="font-weight:600;"></span>
+                    </div>
+                </div>
+                <!-- Content Container for Paragraph and Evidence -->
+                <div id="case-content-container">
+                    <!-- Text injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Replaced Section: Download Evidence -->
+        <div class="evidence-section">
+            <button id="btn-evidence" class="btn btn-primary" onclick="downloadEvidence()">
+                📸 Download Evidence (PNG)
+            </button>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="actions-bar">
+            <button class="btn" onclick="window.print()">🖨️ Print View</button>
+            <button class="btn btn-reset" onclick="resetAllData()">⚠️ Reset All Progress</button>
+        </div>
+    </main>
+</div>
+
+<script>
+    // --- Configuration ---
+    const STORAGE_KEY = 'efl_lab_state_v2'; // Bumped version for new content structure
+
+    // --- Data: Content ---
+    const cases = [
+        {
+            id: 1,
+            title: "Case 1 — The Silent Expert",
+            paragraph: `María is excellent at problem-solving and her written work is always outstanding, but she never speaks in class and avoids group discussions. Although she clearly understands the content, she seems tense whenever she has to interact with others. Her teacher tells her, “Unless you participate, I can’t assess your learning properly,” and later adds that students improve as long as they take risks and share ideas. María admits she would probably contribute more were the classroom a safer place, and one classmate comments that if the teacher had created more belonging earlier, María would have participated sooner.`,
+            evidence: [
+                "Context: Academic English speaking course; groups of 4; assessment = 60% participation + 40% tasks.",
+                "Student quotes: “I freeze when everyone looks at me.” / “I can explain in writing, but speaking feels risky.”",
+                "Teacher quote: “Provided that you speak at least once per activity, I can give you credit.”",
+                "Observation: María writes detailed notes and helps quietly, but avoids eye contact when discussion starts.",
+                "Data: She spoke 2 times in 4 lessons; her written scores average 4.6/5.0."
+            ]
+        },
+        {
+            id: 2,
+            title: "Case 2 — The Memorizer",
+            paragraph: `In a history course, Andrés gets top marks because he memorizes facts quickly, but when the class has debates, he struggles to explain ideas or connect information to real issues. A classmate argues that learning stays passive as long as students study only for tests, but it becomes more meaningful provided that they connect facts to real problems. Andrés says that if he used discussion more, he would develop stronger arguments, and another student adds that had the course focused on experiences, they might have remembered the content better and used it more confidently.`,
+            evidence: [
+                "Context: Lecture-heavy course; 35 students; assessment = 70% exams + 30% quizzes.",
+                "Student quotes: “I remember dates, but I don’t know what they mean.” / “Debates stress me out unless I prepare a script.”",
+                "Teacher quote: “On condition that you use evidence, your opinion can be any position.”",
+                "Observation: Andrés speaks only when asked direct questions; he reads notes word-for-word.",
+                "Data: Exam scores 4.8/5.0; debate score 2.7/5.0."
+            ]
+        },
+        {
+            id: 3,
+            title: "Case 3 — Group Work Breakdown",
+            paragraph: `A group project collapses because two members do all the work while the others remain silent and disconnected. The final product is weak, and the group feels frustrated. The teacher explains that teams work better provided that everyone has a clear role and that fairness is impossible unless each person takes responsibility. One student says the group would solve conflicts more effectively if they were more independent, and another reflects that if they had practiced generosity—sharing time, effort, and support—the result would have been completely different.`,
+            evidence: [
+                "Context: Project-based course; groups of 5; assessment = one final grade for the whole group.",
+                "Student quotes: “I did everything because I didn’t trust them.” / “I stayed quiet unless someone asked me directly.”",
+                "Teacher quote: “Were you to assign roles from the start, the teamwork would improve.”",
+                "Observation: Two students lead every decision; others agree without contributing.",
+                "Data: 6 missed internal deadlines; 3 unresolved conflicts reported."
+            ]
+        },
+        {
+            id: 4,
+            title: "Case 4 — The Creative Student",
+            paragraph: `Luisa learns best when she can design visual materials, create mind maps, and build infographics, but she feels the school only values essays and traditional tests. She says she learns deeply as long as she can create something and complains that students disengage unless teachers allow different ways to show learning. Luisa believes that if school valued visual thinking more, many students would feel capable, and she admits that if her teachers had recognized her strengths earlier, she would have believed in herself much sooner.`,
+            evidence: [
+                "Context: Academic writing course; assessment = 80% essays + 20% grammar tests.",
+                "Student quotes: “I understand the topic once I organize it visually.” / “I feel stupid unless I can show what I know differently.”",
+                "Teacher quote: “Provided that you follow the rubric, I can’t accept infographics instead of essays.”",
+                "Observation: Luisa produces excellent mind maps but rushes the final essay and loses points for structure.",
+                "Data: Mind map task: 5.0/5.0; essay average: 3.3/5.0."
+            ]
+        },
+        {
+            id: 5,
+            title: "Case 5 — The Strict Classroom",
+            paragraph: `In a language class, students rarely volunteer because the teacher corrects every mistake immediately and often interrupts them mid-sentence. The room feels tense, and participation is low. One student observes that people speak more provided that mistakes are treated as normal, and another insists that students won’t take risks unless they feel significant. A class leader suggests the class would feel more human were feedback more respectful, and several students agree that had the teacher focused on the heart, they would have improved faster and with more confidence.`,
+            evidence: [
+                "Context: Speaking & pronunciation course; 12 students; assessment = 50% speaking tests + 50% participation.",
+                "Student quotes: “I stop talking when I’m interrupted.” / “I would speak more if mistakes weren’t a big deal.”",
+                "Teacher quote: “Unless your grammar is accurate, you will lose points.”",
+                "Observation: Only 3 students volunteer; others avoid eye contact and give one-word answers.",
+                "Data: Attendance dropped from 12 to 9 in three weeks."
+            ]
+        },
+        {
+            id: 6,
+            title: "Case 6 — The Independent Learner",
+            paragraph: `Santiago studies alone using podcasts, flashcards, and weekly goals, and he improves quickly because he is consistent. However, he rarely supports classmates and prefers to work independently. A peer tells him he learns fast as long as he keeps his routine, but argues that learning transforms communities provided that people share what they know. Santiago admits that if he helped others, the group would improve too, and the class later reflects that if they had built a culture of generosity earlier, weaker students would have felt supported and less anxious.`,
+            evidence: [
+                "Context: Mixed-skill English class; pair work daily; assessment = individual tests + participation.",
+                "Student quotes: “I don’t want to slow down.” / “I learn best unless I have to depend on someone else.”",
+                "Teacher quote: “On condition that you support your partner, your teamwork grade will increase.”",
+                "Observation: Santiago finishes early and checks his phone while others struggle.",
+                "Data: Santiago’s quiz average: 4.7/5.0; peer feedback rating: 2.8/5.0."
+            ]
+        },
+        {
+            id: 7,
+            title: "Case 7 — The Practical Worker",
+            paragraph: `Carolina works full-time and attends class in the evenings, and she learns best through practical tasks rather than long lectures. She says she can’t learn well unless she applies ideas to real situations and that learning becomes meaningful as long as students use experience, not only theory. Carolina adds that she would participate more were the course more hands-on, and she strongly believes that had the class done more practice tasks from the start, she would have felt more capable and less stressed.`,
+            evidence: [
+                "Context: Evening B2 course; 10 students; assessment = 60% exams + 40% homework.",
+                "Student quotes: “I understand once I try it.” / “I lose focus unless the task feels real.”",
+                "Teacher quote: “Provided that we finish the book units, we can do a project later.”",
+                "Observation: Carolina asks for examples and role-plays; she disengages during long explanations.",
+                "Data: She submitted 4 of 8 homework tasks late; her speaking is strong (4.4/5.0) but tests are lower (3.1/5.0)."
+            ]
+        },
+        {
+            id: 8,
+            title: "Case 8 — The Transformation Moment",
+            paragraph: `In a workshop, a professor treats students with respect, gives them real responsibility, and asks them to reflect on beliefs they have held for years. One student says people change provided that they feel safe and respected, and another claims that learning stays superficial unless students question old beliefs. A quiet participant admits that if she didn’t feel belonging in that space, she would stay silent, and she finishes by saying that had she experienced this type of learning earlier, she would have chosen a different academic and professional path.`,
+            evidence: [
+                "Context: Short workshop (2 hours); small group of 15; assessment = reflection letter + peer feedback.",
+                "Student quotes: “I felt capable because my opinion mattered.” / “I changed my mind when I heard other stories.”",
+                "Teacher quote: “Were you to stay curious instead of defensive, this conversation would transform you.”",
+                "Observation: Students build on each other’s comments; they ask follow-up questions without fear.",
+                "Data: 14/15 students participated; reflection letters averaged 4.5/5.0."
+            ]
+        }
+    ];
+
+    // --- Data: Connectors (EFL Specific Context) ---
+    const connectorsDB = {
+        "unless": { def: "except if; if not" },
+        "provided": { def: "on condition that; if" },
+        "providing": { def: "on condition that" },
+        "as": { def: "as long as: if, on condition that" },
+        "were": { def: "hypothetical inversion (if it were...)" },
+        "had": { def: "past hypothetical inversion (if I had...)" },
+        "without": { def: "if it were not for" },
+        "but": { def: "but for: if it hadn't happened" },
+        "suppose": { def: "imagine if" },
+        "supposing": { def: "imagine if" },
+        "if": { def: "introducing a condition" }
+    };
+
+    // --- State Management ---
+    let appState = {
+        currentCaseIndex: 0,
+        userData: {} // Format: { caseId: { html: '' } }
+    };
+
+    // --- DOM Elements ---
+    const sidebarList = document.getElementById('nav-list');
+    const caseTitle = document.getElementById('case-title');
+    const caseContentContainer = document.getElementById('case-content-container');
+    const tooltip = document.getElementById('tooltip');
+    const studentNameInput = document.getElementById('student-name');
+    const autosaveStatus = document.getElementById('autosave-status');
+
+    // --- Initialization ---
+    function init() {
+        // Attempt to load from storage
+        const loaded = loadFromLocalStorage();
+        
+        if (!loaded) {
+            // No saved data or data format mismatch logic could go here
+            // But currently loadCase generates fresh HTML if userData[id] is missing
+        }
+
+        renderSidebar();
+        loadCase(appState.currentCaseIndex);
+        
+        // Setup text interactions
+        document.addEventListener('click', handleGlobalClick);
+        // Add double-click listener for global dictionary lookup (Replaces single click)
+        document.addEventListener('dblclick', handleGlobalDoubleClick);
+        
+        // Setup input saving
+        studentNameInput.addEventListener('input', () => {
+            saveToLocalStorage();
+        });
+    }
+
+    // --- Local Storage Logic ---
+    function saveToLocalStorage() {
+        const studentName = studentNameInput.value;
+        const dataToSave = {
+            currentCaseIndex: appState.currentCaseIndex,
+            userData: appState.userData,
+            studentName: studentName,
+            timestamp: new Date().getTime()
+        };
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+            showAutosaveStatus();
+        } catch (e) {
+            console.error("Autosave failed:", e);
+        }
+    }
+
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                
+                // Restore Data
+                appState.currentCaseIndex = typeof parsed.currentCaseIndex === 'number' ? parsed.currentCaseIndex : 0;
+                
+                // Merge userData (in case content length changed, though unlikely in this activity)
+                if (parsed.userData) {
+                    appState.userData = parsed.userData;
+                }
+                
+                // Restore Name
+                if (parsed.studentName) {
+                    studentNameInput.value = parsed.studentName;
+                }
+
+                return true;
+            } catch (e) {
+                console.error("Error loading save:", e);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    function resetAllData() {
+        if(confirm("Are you sure you want to delete all saved progress? This cannot be undone.")) {
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload(); // Refresh to reset state
+        }
+    }
+
+    function showAutosaveStatus() {
+        autosaveStatus.classList.add('visible');
+        setTimeout(() => {
+            autosaveStatus.classList.remove('visible');
+        }, 2000);
+    }
+
+    // --- Core Navigation ---
+    function renderSidebar() {
+        sidebarList.innerHTML = '';
+        cases.forEach((c, index) => {
+            const li = document.createElement('li');
+            li.className = 'nav-item';
+            li.textContent = c.title;
+            li.onclick = () => switchCase(index);
+            if(index === appState.currentCaseIndex) li.classList.add('active');
+            sidebarList.appendChild(li);
+        });
+        
+        // Auto-scroll active item into view on mobile
+        if(window.innerWidth <= 768) {
+            const active = sidebarList.querySelector('.active');
+            if(active) active.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        }
+    }
+
+    function switchCase(index) {
+        saveCurrentState(); // Save old case state to memory
+        appState.currentCaseIndex = index;
+        saveToLocalStorage(); // Persist change
+        renderSidebar(); 
+        loadCase(index);
+    }
+
+    function loadCase(index) {
+        const c = cases[index];
+        caseTitle.textContent = c.title;
+        
+        // Check if we have saved HTML for this case
+        if (appState.userData[c.id] && appState.userData[c.id].html) {
+            // Restore saved state (highlighted HTML)
+            caseContentContainer.innerHTML = appState.userData[c.id].html;
+        } else {
+            // Generate fresh HTML from structure
+            let evidenceListHtml = '<ul class="evidence-list">';
+            c.evidence.forEach(point => {
+                evidenceListHtml += `<li>${point}</li>`;
+            });
+            evidenceListHtml += '</ul>';
+
+            const freshHtml = `
+                <div class="case-paragraph">${c.paragraph}</div>
+                <details class="evidence-panel">
+                    <summary>Case file (evidence)</summary>
+                    ${evidenceListHtml}
+                </details>
+            `;
+            caseContentContainer.innerHTML = freshHtml;
+        }
+    }
+
+    function saveCurrentState() {
+        const c = cases[appState.currentCaseIndex];
+        const currentHTML = caseContentContainer.innerHTML;
+        appState.userData[c.id] = {
+            html: currentHTML
+        };
+        // Note: We don't call saveToLocalStorage here automatically to avoid excessive writes
+        // It is called in specific triggers (applyHighlight, switchCase)
+    }
+
+    // --- Feature: Highlighting ---
+    function applyHighlight(type) {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+        
+        // Check if selection is within our content container
+        if (!caseContentContainer.contains(selection.anchorNode)) {
+            alert("Please select text inside the reading area (paragraph or evidence).");
+            return;
+        }
+
+        const range = selection.getRangeAt(0);
+        const span = document.createElement('span');
+        span.className = `highlight-${type}`;
+        
+        try {
+            range.surroundContents(span);
+            selection.removeAllRanges(); // Deselect
+        } catch (e) {
+            alert("Please select a clean block of text (avoid overlapping existing highlights).");
+        }
+        
+        saveCurrentState();
+        saveToLocalStorage(); // Auto-save after highlight
+    }
+
+    function clearHighlights() {
+        if(confirm("Remove all highlights for this case?")) {
+            const c = cases[appState.currentCaseIndex];
+            // Clear saved data for this case to force regeneration in loadCase
+            delete appState.userData[c.id];
+            loadCase(appState.currentCaseIndex);
+            
+            saveCurrentState(); // This re-saves the fresh (clean) state
+            saveToLocalStorage();
+        }
+    }
+
+    function showTooltip(x, y, data, word) {
+        tooltip.style.left = x + 'px';
+        tooltip.style.top = (y + 20) + 'px'; // Offset below cursor
+        tooltip.style.display = 'block';
+        
+        // Capitalize title
+        const title = word.charAt(0).toUpperCase() + word.slice(1);
+        
+        let contentHtml = `<strong>${title}</strong>`;
+        
+        if (data.phonetic) {
+            contentHtml += `<span class="phonetic">${data.phonetic}</span>`;
+        }
+        
+        contentHtml += `<br><em style="color: #cbd5e1; font-size: 0.85rem;">${data.def}</em>`;
+        
+        tooltip.innerHTML = contentHtml;
+    }
+
+    function handleGlobalClick(e) {
+        // Close tooltip if clicking elsewhere
+        if (!tooltip.contains(e.target)) {
+            tooltip.style.display = 'none';
+        }
+    }
+
+    // --- Feature: Global Double Click Lookup (API) ---
+    async function handleGlobalDoubleClick(e) {
+        const selection = window.getSelection();
+        const word = selection.toString().trim();
+
+        // Basic validation to ensure we selected a word (no numbers/symbols only)
+        if (word.length > 1 && /^[a-zA-Z\u00C0-\u00FF]+$/.test(word)) {
+            
+            // 1. Check if it's a known connector first (Prioritize EFL context)
+            const lower = word.toLowerCase();
+            
+            // Special handling for "as long as" multi-word connector
+            if (lower === 'long') {
+                const range = selection.getRangeAt(0);
+                const text = range.startContainer.textContent;
+                const offset = range.startOffset;
+                // Grab some context around the word
+                const context = text.substring(Math.max(0, offset - 5), Math.min(text.length, offset + 10)).toLowerCase();
+                if (context.includes('as long as')) {
+                     showTooltip(e.pageX, e.pageY, { def: connectorsDB['as'].def, phonetic: "" }, "as long as");
+                     return;
+                }
+            }
+
+            if (connectorsDB[lower]) {
+                const content = {
+                    def: connectorsDB[lower].def,
+                    phonetic: ""
+                };
+                showTooltip(e.pageX, e.pageY, content, word);
+                return;
+            }
+
+            // 2. Fallback to API for general words
+            showTooltip(e.pageX, e.pageY, { def: "Searching dictionary...", phonetic: "" }, word);
+            
+            const result = await fetchDefinition(word);
+            
+            showTooltip(e.pageX, e.pageY, { 
+                def: result.def, 
+                phonetic: result.phonetic
+            }, word);
+        }
+    }
+
+    async function fetchDefinition(word) {
+        try {
+            const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+            if (!response.ok) throw new Error('Not found');
+            const data = await response.json();
+            
+            // Extract first definition and phonetic
+            const def = data[0]?.meanings[0]?.definitions[0]?.definition || "Definition not found.";
+            const phonetic = data[0]?.phonetic || (data[0]?.phonetics?.find(p => p.text)?.text) || '';
+            
+            return { def, phonetic, found: true };
+        } catch (e) {
+            return { def: "Definition not available.", phonetic: "", found: false };
+        }
+    }
+
+    // --- Feature: Download Evidence ---
+    function downloadEvidence() {
+        const studentName = studentNameInput.value.trim();
+        if (!studentName) {
+            alert("Please enter your name in the top box before downloading evidence.");
+            studentNameInput.focus();
+            studentNameInput.classList.add('error');
+            return;
+        }
+
+        const c = cases[appState.currentCaseIndex];
+        const wrapper = document.getElementById('capture-wrapper');
+        const header = document.getElementById('capture-header');
+        const sNameSpan = document.getElementById('capture-student-name');
+        const cTitleSpan = document.getElementById('capture-case-title');
+
+        // Prepare info for screenshot
+        sNameSpan.textContent = studentName;
+        cTitleSpan.textContent = c.title;
+        header.style.display = "block"; // Show header for screenshot
+        
+        // visual feedback
+        const btn = document.getElementById('btn-evidence');
+        const originalText = btn.textContent;
+        btn.textContent = "Generating...";
+        btn.disabled = true;
+
+        html2canvas(wrapper, {
+            backgroundColor: "#ffffff", // ensure white background
+            scale: 2 // better quality
+        }).then(canvas => {
+            const link = document.createElement('a');
+            const safeName = studentName.replace(/\s+/g, '_').substring(0, 15);
+            const safeCase = c.title.split('—')[0].trim().replace(/\s+/g, '');
+            link.download = `Evidence_${safeName}_${safeCase}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            // Cleanup
+            header.style.display = "none";
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }).catch(err => {
+            console.error(err);
+            alert("Could not generate image. Browser might not support this feature.");
+            header.style.display = "none";
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    // --- Feature: Export ---
+    function exportData() {
+        const studentName = studentNameInput.value.trim();
+        
+        saveCurrentState(); // Ensure latest state is captured
+        saveToLocalStorage(); // Ensure local is up to date too
+        
+        const exportPayload = {
+            studentName: studentName || "Anonymous",
+            timestamp: new Date().toISOString(),
+            casesData: appState.userData
+        };
+
+        const dataStr = JSON.stringify(exportPayload, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportFileDefaultName = `efl_conditionals_lab_${studentName ? studentName.replace(/\s+/g, '_') : 'work'}.json`;
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+    }
+
+    // Start App
+    init();
+
+</script>
+
+</body>
+</html>
